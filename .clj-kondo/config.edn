@@ -1,0 +1,1 @@
+{:lint-as {backend-payment-processor.aux.init/defflow clojure.test/deftest}}
