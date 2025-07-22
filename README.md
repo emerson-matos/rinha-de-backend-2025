@@ -83,3 +83,6 @@ This is a minimal example. Real-world services would include:
 ---
 
 **Note:** This README reflects the current codebase and test setup. If you add new features or change the architecture, update this file accordingly.
+
+Rinha Spec:
+https://github.com/zanfranceschi/rinha-de-backend-2025/blob/main/INSTRUCOES.md
