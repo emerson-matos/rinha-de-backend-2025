@@ -1,0 +1,148 @@
+services:
+  backend1: &backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend1
+    expose:
+      - "8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.6"
+          # ;; FIXME: memory, how to make this smaller? less then 100mb i guess
+          memory: 300M
+        reservations:
+          cpus: "0.1"
+          memory: 40M
+    develop:
+      watch:
+        - action: rebuild
+          path: ./src
+        - action: rebuild
+          path: ./project.clj
+        - action: sync
+          path: ./resources
+          target: /app/resources
+        - action: sync
+          path: ./config
+          target: /app/config
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/payments
+      - REDIS_URL=redis://redis:6379
+      - PORT=8080
+      - PAYMENT_PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+      - PAYMENT_PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - payment-processor
+    restart: unless-stopped
+
+  backend2:
+    <<: *backend
+    container_name: backend2
+
+  nginx:
+    image: nginx:alpine
+    container_name: load-balancer
+    ports:
+      - "9999:9999"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      backend1:
+        condition: service_started
+      backend2:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 20M
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./nginx.conf
+          target: /etc/nginx/nginx.conf
+    restart: unless-stopped
+    networks:
+      - default
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=payments
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: |
+      postgres 
+      -c max_connections=15
+      -c shared_buffers=12MB
+      -c effective_cache_size=24MB
+      -c maintenance_work_mem=2MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=512kB
+      -c default_statistics_target=50
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=1
+      -c work_mem=512kB
+      -c min_wal_size=32MB
+      -c max_wal_size=64MB
+      -c fsync=off
+      -c synchronous_commit=off
+      -c full_page_writes=off
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: "120MB"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - default
+
+  # Redis for caching health checks
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: |
+      redis-server
+      --maxmemory 6mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+      --tcp-keepalive 60
+      --timeout 0
+      --databases 1
+      --maxclients 100
+    deploy:
+      resources:
+        limits:
+          cpus: "0.05"
+          memory: "30MB"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - default
+
+networks:
+  payment-processor:
+    external: true
+    name: payment-processor
+  default:
+    driver: bridge

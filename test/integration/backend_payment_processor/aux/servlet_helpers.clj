@@ -9,7 +9,8 @@
 (def default-headers
   {"Content-Type"    "application/edn ;charset=utf-8,*/*"
    "Accept-Encoding" "gzip, deflate"})
-
+(def json-headers
+  (merge default-headers {"Content-Type"    "application/json ;charset=utf-8,*/*"}))
 (defn output-stream->data [output]
   (if (string? output)
     (serialization/read-edn output)
@@ -24,20 +25,26 @@
   ([method uri]
    (req! method uri nil))
   ([method uri body]
+   (req! method uri body :edn))
+  ([method uri body content-type]
    (flow/flow "servlet request"
      [servlet (flow/get-state (comp :servlet :system))]
      (with-debug-error-logging
      ;; Raw pedestal response, without content negotiation or serialization support
-     (-> servlet
-         :instance
-         ::bootstrap/service-fn
-         (response-for method uri
-                       :body (when body
-                               (serialization/write-edn body))
-                       :headers default-headers)
-         (update :body #(try (output-stream->data %)
-                             (catch Exception _ %)))
-         flow/return)))))
+       (-> servlet
+           :instance
+           ::bootstrap/service-fn
+           (response-for method uri
+                         :body (when body
+                                 (case content-type
+                                   :json (serialization/write-json body)
+                                   (serialization/write-edn body)))
+                         :headers (case content-type
+                                    :json json-headers
+                                    default-headers))
+           (update :body #(try (output-stream->data %)
+                               (catch Exception _ %)))
+           flow/return)))))
 
 (def GET  (partial req! :get))
 (def POST (partial req! :post))

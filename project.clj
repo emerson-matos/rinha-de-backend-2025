@@ -11,6 +11,18 @@
                  [io.pedestal/pedestal.jetty "0.7.2"]
                  [io.pedestal/pedestal.error "0.7.2"]
 
+                 [com.github.seancorfield/next.jdbc "1.3.909"]
+                 [org.postgresql/postgresql "42.7.2"]
+                 [com.zaxxer/HikariCP "5.1.0"]
+;; Time handling (for ISO timestamps)
+[clojure.java-time "1.4.2"]
+
+;; Configuration
+[aero "1.1.6"] ; or [cprop "0.1.20"]
+
+;; Async coordination (for fallback logic)
+[org.clojure/core.async "1.6.681"]
+
                  [http-kit "2.8.0"]
                  [com.stuartsierra/component "1.1.0"]
                  [prismatic/schema "1.4.1"]

@@ -25,5 +25,13 @@
   (init)
   (start))
 
+(def db-uri "datomic:dev://0.0.0.0:4334/hello")
+
 (comment
-  (go))
+  (go)
+  (stop)
+  (require '[backend-payment-processor.service :as ser])
+  ser/atom
+  (d/create-database db-uri)
+  (def conn (d/connect db-uri))
+  @(d/transact conn [{:db/doc "Hello world"}]))

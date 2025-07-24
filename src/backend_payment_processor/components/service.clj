@@ -3,7 +3,8 @@
    [com.stuartsierra.component :as component]
    [io.pedestal.http :as bootstrap]
    [io.pedestal.http.route :as route]
-   [io.pedestal.interceptor.helpers :refer [before]]))
+   [io.pedestal.interceptor.helpers :refer [before]]
+   [io.pedestal.log :as log]))
 
 (defn- add-system [service]
   (before (fn [context] (assoc-in context [:request :components] service))))
@@ -54,6 +55,7 @@
 (defrecord Service [config routes]
   component/Lifecycle
   (start [this]
+    (log/info :log :component-start :component :service :time (System/currentTimeMillis))
     (assoc this
            :runnable-service
            (runnable-service (:config config) (:routes routes) this)))

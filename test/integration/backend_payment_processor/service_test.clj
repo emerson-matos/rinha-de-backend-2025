@@ -14,6 +14,22 @@
       :body {:message "Hello World!"}}
      (GET "/"))))
 
+(defflow payments-endpoint-flow
+  (flow "hitting payments endpoint"
+    (match?
+     {:status 202
+      :body {:correlation-id "4a7901b8-7d26-4d9d-aa19-4dc1c7cf60b3"
+             :amount 19.90M}}
+     (POST "/payments" {"correlationId" #uuid "4a7901b8-7d26-4d9d-aa19-4dc1c7cf60b3", "amount" 19.90M} :json))))
+
+(defflow payments-summary-endpoint-flow
+  (flow "hitting payments-summary endpoint"
+    (match?
+     {:status 202
+      :body {:from "2020-07-10T12:34:56.000Z"
+             :to "2020-07-10T12:35:56.000"}}
+     (GET "/payments-summary?from=2020-07-10T12:34:56.000Z&to=2020-07-10T12:35:56.000"))))
+
 (defn create-account!
   "Create account by hitting /accounts/ endpoint.
 

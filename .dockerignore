@@ -1,0 +1,35 @@
+# Ignore development files
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+
+# Ignore build artifacts
+target/
+.lein-*
+.nrepl-*
+pom.xml*
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.iml
+.cpcache/
+
+# Ignore test files
+test/
+dev/
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo

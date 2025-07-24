@@ -13,6 +13,7 @@ COPY src ./src
 COPY config ./config
 
 # Build the uberjar
+RUN lein deps
 RUN lein uberjar
 
 # --
@@ -24,13 +25,25 @@ WORKDIR /app
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy the built uberjar
-COPY --from=builder /app/target/backend-payment-processor-0.0.1-SNAPSHOT-standalone.jar app.jar
+COPY --from=builder /app/target/backend-payment-processor-*-standalone.jar app.jar
 
 # Set ownership and permissions
-RUN chown -R appuser:appuser /app && chmod 755 /app/app.jar
+RUN chown -R appuser:appuser /app
 
 USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JVM tuning for low memory usage and performance
+ENV JVM_OPTS="-Xmx120m \
+              -Xms120m \
+              -XX:+UseG1GC \
+              -XX:MaxGCPauseMillis=20 \
+              -XX:+UseStringDeduplication \
+              -XX:+OptimizeStringConcat \
+              -Djava.awt.headless=true \
+              -Dfile.encoding=UTF-8 \
+              -Duser.timezone=UTC \
+              -server"
+
+ENTRYPOINT java $JVM_OPTS -jar app.jar
