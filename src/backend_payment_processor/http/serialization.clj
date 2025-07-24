@@ -21,12 +21,12 @@
 (s/defn ^:private replace-char-gen :- (s/pred fn?)
   ;; Will replace dashes with underscores or underscores with dashes for the keywords in a map
   ;; Ignores String values in a map (both keys and values)
-  ([from :- Character, to :- Character] (replace-char-gen from to #{}))
+  ;; ([from :- Character, to :- Character] (replace-char-gen from to #{}))
   ([from :- Character, to :- Character, exceptions :- #{s/Keyword}]
    #(if (keyword? %) (replace-char % from to exceptions) %)))
 
 (defn dash->underscore [json-doc]
-  (walk/postwalk (replace-char-gen \- \_) json-doc))
+  (walk/postwalk (replace-char-gen \- \_ #{}) json-doc))
 
 (defn underscore->dash [json-doc]
   (walk/postwalk (replace-char-gen \_ \- underscore->dash-exceptions) json-doc))

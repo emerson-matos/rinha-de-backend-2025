@@ -101,11 +101,11 @@
   [_]
   (ring-resp/response {:ok (get-cached-health-check :payment {})}))
 
-(def atoms (atom []))
+;; (def atoms (atom []))
 (defn payments
   [{body :json-params
     {:keys [http storage]} :components}]
-  (swap! atoms conj {:s body})
+  ;; (swap! atoms conj {:s body})
   ;; do something async!!!
   ;; maybe clojure async?
   ;; de fato processar?
@@ -114,12 +114,12 @@
 (defn payments-summary
   [{query :query-params
     {:keys [http storage]} :components}]
-  (swap! atoms conj {:s query})
+  ;; (swap! atoms conj {:s query})
   ;;TODO de fato pegar o sumary hehe
   (ring-resp/status (ring-resp/response query) 202))
 
 (defn camel->kebab [s]
-  (swap! atoms conj {:s s})
+  ;; (swap! atoms conj {:s s})
   (-> s
       (str/replace #"" "$1-$2")
       str/lower-case))

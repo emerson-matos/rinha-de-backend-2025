@@ -11,7 +11,7 @@ services:
         limits:
           cpus: "0.6"
           # ;; FIXME: memory, how to make this smaller? less then 100mb i guess
-          memory: 300M
+          memory: 260M
         reservations:
           cpus: "0.1"
           memory: 40M

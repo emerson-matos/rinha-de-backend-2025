@@ -52,7 +52,7 @@
             "integration" ["with-profile" "+integration" "test"]}
   :profiles {:integration {:test-paths ^:replace ["test/integration"]}
              :unit {:test-paths ^:replace ["test/unit"]}
-             :dev {:aliases {"run-dev" ["trampoline" "run" "-m" "backend-payment-processor.server/run-dev"] }
+             :dev {:aliases {"run-dev" ["trampoline" "run" "-m" "backend-payment-processor.server/run-dev"]}
                    :repl-options {:init-ns user}
                    :source-paths ["dev"]
                    :dependencies [[nubank/state-flow "5.20.1"]
@@ -60,8 +60,11 @@
                                   [org.clojure/tools.namespace "1.5.0"]
                                   [org.clojure/java.classpath "1.1.0"]
                                   [criterium "0.4.6"]]}
-             :uberjar {:aot [backend-payment-processor.server]}}
+             :uberjar {:aot :all
+                       :main backend-payment-processor.server
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}}
 
   :test-paths ["test/unit" "test/integration"]
 
+  :global-vars {*warn-on-reflection* true}
   :main ^{:skip-aot true} backend-payment-processor.server)

@@ -18,7 +18,7 @@ RUN lein uberjar
 
 # --
 # Final image
-FROM openjdk:21-jdk
+FROM openjdk:21-jdk-slim
 WORKDIR /app
 
 # Create a non-root user and group
@@ -35,15 +35,16 @@ USER appuser
 EXPOSE 8080
 
 # JVM tuning for low memory usage and performance
-ENV JVM_OPTS="-Xmx120m \
-              -Xms120m \
+ENV JVM_OPTS="-Xmx110m \
+              -Xms110m \
+              -XX:MaxMetaspaceSize=64m \
+              -Xss512k \
+              -XX:ReservedCodeCacheSize=16m \
               -XX:+UseG1GC \
-              -XX:MaxGCPauseMillis=20 \
-              -XX:+UseStringDeduplication \
-              -XX:+OptimizeStringConcat \
+              -Dclojure.compiler.direct-linking=true \
               -Djava.awt.headless=true \
               -Dfile.encoding=UTF-8 \
-              -Duser.timezone=UTC \
+              -Duser.timezone=America/Sao_Paulo \
               -server"
 
 ENTRYPOINT java $JVM_OPTS -jar app.jar
